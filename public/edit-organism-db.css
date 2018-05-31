@@ -1,0 +1,51 @@
+/* Table Defaults */
+table {
+	float: left;
+	margin: 2px;
+	border-collapse: collapse;
+}
+table .empty {
+	background-color: gray;
+}
+caption {
+	text-align: left;
+}
+th {
+	border: 1px solid black;
+	padding: 2px;
+}
+td {
+	border: 1px solid black;
+	padding: 2px;
+}
+td.add-record {
+	font-family: monospace;
+}
+td.delete-record {
+	font-family: monospace;
+}
+td input[type="text"] {
+	width: calc(100% - 4px);
+}
+tr#buttons td {
+	border-top: none;
+	border-right: none;
+	border-left: none;
+}
+form#importForm {
+	position: fixed;
+	display: inline-block;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	border: 1px solid black;
+	padding: 5px;
+	text-align: center;
+	background-color: white;
+}
+div.horizontal-line {
+	height: 1px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	background-color: black;
+}

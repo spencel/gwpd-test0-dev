@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+    <script type="text/javascript" src="public/edit-organism-db.js"></script>
+    <link rel="stylesheet" type="text/css" href="public/edit-organism-db.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
+  <body>
+  	<a href="/">Index</a> | 
+  	<a href="/edit-organism-db">Demo Organism Database</a>
+  	<table id="organism" class="organism">
+  		<caption>Demo - Organisms Database</caption>
+  		<tr id="buttons">
+  			<td colspan="10"><input id="show-import-records-form" type="submit" value="import" caption="add many organisms from a tab delimited text file"></td>
+  		</tr>
+  		<tr>
+    		<th>species name</th>
+    		<th>common name</th>
+        <th>type</th>
+        <th>family name</th>
+        <th>subfamily name</th>
+        <th>genus name</th>
+        <th>genome type</th>
+        <th>gram stain</th>
+        <th>genome length (bp)</th>
+        <th class="empty"></th>
+    	<tr id='new-record'>
+        <td>
+          <input id="speciesName" type="text" placeholder="add">
+        </td>
+        <td>
+          <input id="commonName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="typeName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="familyName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="subfamilyName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="genusName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="genomeTypeName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="gramStainGroupName" type="text" placeholder="">
+        </td>
+        <td>
+          <input id="genomeLength" type="text" placeholder="">
+        </td>
+        <td>
+          <input id='add-record'class='add-record' type='submit' value='+'>
+        </td>
+      <tr>
+  	</table>
+</div>
+  </body>
+</html>
