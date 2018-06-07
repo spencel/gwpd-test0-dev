@@ -1,4 +1,5 @@
-/*jshint esversion: 6*/
+/* jshint esversion: 6 */
+/* jshint ignore: start */
 // Module dependencies
 import fs from 'fs';
 import LineByLineReader from 'line-by-line';
@@ -81,20 +82,53 @@ app.post( '/get-organism-table', ( request, response ) => {
 	});
 });
 
-app.post( '/add-organism', bodyParser.json(), ( request, response ) => {
+app.post( '/add-organism', bodyParser.json(), async ( request, response ) => {
 	//response.sendFile( __dirname + '/index.html' ); 
 	//console.log( 'request.body:' );
 	//console.log( request.body );
 	var set = request.body;
-	getIds( set )
-	.then( resolved => {
-		response.send({ 
-			id: resolved.insertId,
-			record: result,
-			recordAdded: true
-		});
+	let promise = new Promise( ( resolved, reject ) => {
+		
 	});
+	console.log( 'a ' + set.typeName );
+	set = await getIds( set );
+	console.log( 'b ' + set.typeName );
+	response.send('cool story bro');
 });
+
+async function getIds( set ) {
+	console.log( 'set:' );
+	console.log( set );
+	let promise = new Promise( async ( resolve, reject ) => {
+		set.typeName = await getIdByValue( 'organism_type', set.typeName );
+		resolve( set );
+	});
+	set = await promise;
+	//console.log( `set.typeName: ${set.typeName}` );
+	return await set;
+}	
+
+async function getIdByValue( table, value ) {
+	console.log( 'called getOrganismTypeId' );
+	return await mysqlPool.getConnection( ( error, connection ) => {
+		if ( error ) throw error;
+		console.log( 'database connected' );
+		connection.query( 
+			'SELECT id FROM ?? WHERE name = ?',
+			[ table, value ],
+			( error, result ) => {
+				if ( error ) throw error;
+				connection.release();
+				//console.log( result.length );
+				if ( result.length === 0 ) { 
+					return;
+				}
+				console.log( `id: ${result[ 0 ].id}` );
+				return result[ 0 ].id;
+			}
+		);
+	});
+}
 
 // File uploader
 var storage = multer.diskStorage({
@@ -232,219 +266,6 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });*/
 
-function getIds( set ) {
-	//console.log( 'set:' );
-	//console.log( set );
-	return new Promise(( resolve, reject ) => {
-		getOrganismTypeId( set, set => {
-			resolve( set );
-		});
-	})
-	.then( set => {
-		return new Promise(( resolve, reject ) => {
-			getOrgnismFamilyId( set ).then( set => { resolve( set ); } );
-		});
-	})
-	.then( set => {
-		getOrganismSubfamilyId( set ).then( set => { resolve( set ); } );
-	})
-	.then( () => {
-		return new Promise( ( resolve, reject ) => {
-			mysqlPool.getConnection( ( error, connection ) => {
-				if ( error ) throw error;
-				connection.query(
-					'SELECT id FROM organism_genus WHERE name = ?',
-					body.genusName,
-					( error, result ) => {
-						if ( error ) throw error;
-						if ( result.length === 0 ) { 
-							//console.log('reject');
-							reject();
-							return;
-						}
-						set.genus_id = result[ 0 ].id;
-						//console.log( `set.genus_id: ${set.genus_id}`);
-						resolve();
-					}
-				);
-			});
-		});
-	})
-	.then( () => {
-		return new Promise( ( resolve, reject ) => {
-			mysqlPool.getConnection( ( error, connection ) => {
-				if ( error ) throw error;
-				connection.query(
-					'SELECT id FROM gram_stain_group WHERE name = ?',
-					body.gramStainGroupName,
-					( error, result ) => {
-						if ( error ) throw error;
-						connection.release();
-						if ( result.length === 0 ) { 
-							//console.log('reject');
-							reject();
-							return;
-						}
-						set.gram_stain_group_id = result[ 0 ].id;
-						//console.log( `set.gram_stain_group_id: ${set.gram_stain_group}`);
-						resolve();
-					}
-				);
-			});
-		});
-	})
-	.then( () => {
-		return new Promise( ( resolve, reject ) => {
-			mysqlPool.getConnection( ( error, connection ) => {
-				if ( error ) throw error;
-				connection.query(
-					'SELECT id FROM genome_type WHERE name = ?',
-					body.genomeTypeName,
-					( error, result ) => {
-						if ( error ) throw error;
-						connection.release();
-						if ( result.length === 0 ) { 
-							//console.log('reject');
-							reject();
-							return;
-						}
-						set.genome_type_id = result[ 0 ].id;
-						//console.log( `set.genome_type_id: ${set.genome_type_id}`);
-						resolve();
-					}
-				);
-			});
-		});
-	})
-	.then( () => {
-		return new Promise( ( resolve, reject ) => {
-			mysqlPool.getConnection( ( error, connection ) => {
-				if ( error ) throw error;
-				connection.query(
-					'INSERT INTO organism SET ?', 
-					set, 
-					( error, result ) => {
-						if ( error ) throw error;
-						connection.release();
-						if ( result.length === 0 ) { 
-							//console.log('reject');
-							reject();
-							return;
-						}
-						//console.log( 'set:' );
-						//console.log( set );
-						//console.log( 'result:' );
-						//console.log( result );
-						resolve( result );
-					}
-				);
-			});
-		});
-	})
-	.then( resolved => {
-		mysqlPool.getConnection( ( error, connection ) => {
-			if ( error ) throw error;
-			connection.query(
-				'SELECT * FROM organism_view WHERE id = ?', 
-				resolved.insertId, 
-				( error, result ) => {
-					if ( error ) throw error;
-					connection.release();
-					if ( result.length === 0 ) { 
-						//console.log('reject');
-						reject();
-						return;
-					}
-					//console.log( 'set:' );
-					//console.log( set );
-					//console.log( 'result:' );
-					//console.log( result );
-					resolve();
-				}
-			);
-		});
-	});
-}
 
-function getOrganismTypeId( set, callback ) {
-	console.log( 'called getOrganismTypeId' );
-	//console.log( `name: ${set.typeName}` );
-	var value = ( set.typeName === '' ) ? 'UNKNOWN' : set.typeName;
-	//console.log( `value: ${value}` );
-	mysqlPool.getConnection( ( error, connection ) => {
-		if ( error ) throw error;
-			connection.query( 
-			'SELECT id FROM organism_type WHERE name = ?',
-			value,
-			( error, result ) => {
-				if ( error ) throw error;
-				connection.release();
-				//console.log( result.length );
-				if ( result.length === 0 ) { 
-					reject('organism type not found in database');
-					return;
-				}
-				set.typeName = result[ 0 ].id;
-				//console.log( 'set:' );
-				//console.log( set );
-				console.log( 'resolved getOrganismTypeId' );
-				callback( set );
-			}
-		);
-	});
-}
-
-function getOrgnismFamilyId( set ) {
-	console.log( 'called getOrgnismFamilyId' );
-	//console.log( 'set:' );
-	//console.log( set );
-	var value = ( set.familyName === '' ) ? 'UNKNOWN' : set.familyName;
-	return new Promise( ( resolve, reject ) => {
-		mysqlPool.getConnection( ( error, connection ) => {
-			if ( error ) throw error;
-				connection.query(
-				'SELECT id FROM organism_family WHERE name = ?',
-				value,
-				( error, result ) => {
-					if ( error ) throw error;
-					connection.release();
-					if ( result.length === 0 ) {
-						reject( 'organism family name not found in database' );
-						return;
-					}
-					set.familyName = result[ 0 ].id;
-					console.log( 'resolved getOrgnismFamilyId' );
-					resolve( set );
-				}
-			);
-		});
-	});
-}
-
-function getOrganismSubfamilyId( set ) {
-	var value = ( set.subfamilyName === '' ) ? 'UNKNOWN' : set.subfamilyName;
-	return new Promise( ( resolve, reject ) => {
-			mysqlPool.getConnection( ( error, connection ) => {
-				if ( error ) throw error;
-				connection.query(
-					'SELECT id FROM organism_subfamily WHERE name = ?',
-					value,
-					( error, result ) => {
-						if ( error ) throw error;
-						connection.release();
-						if ( result.length === 0 ) { 
-							//console.log('reject');
-							reject( 'organism subfamily name not found in database' );
-							return;
-						}
-						set.subfamilyName = result[ 0 ].id;
-						//console.log( `set.subfamily_id: ${set.subfamily_id}`);
-						console.log( set );
-						resolve( set );
-					}
-				);
-			});
-		});
-}
 
 module.exports = app;
