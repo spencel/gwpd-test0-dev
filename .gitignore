@@ -1,5 +1,7 @@
 # my ignores
 /uploads
+*.pem
+*.crt
 
 # Logs
 logs

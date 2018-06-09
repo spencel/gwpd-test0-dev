@@ -30,23 +30,43 @@ var mysqlDatabase = 'heroku_b2cf77a96af7a57';
 	host: mysqlHostName,
 	user: mysqlUserName,
 	password: mysqlUserPassword,
-	database: mysqlDatabase
+	database: mysqlDatabase,
+	ssl: {
+		ca: fs.readFileSync( `${__dirname}/mysql/cleardb-ca.pem` ),
+		key: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-key.pem` ),
+		cart: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-cert.pem` )
+	}
 });
 	
 // Test connection
+
 mysqlConnection.connect( error => {
 	if ( error ) throw error;
 
-	//console.log( `Connected to ${mysqlHostName} MySQL database as user ${mysqlUserName}.` );
-	//mysqlConnection.end();
+	console.log( `Connected to ${mysqlHostName} MySQL database as user ${mysqlUserName}.` );
+	mysqlConnection.end();
 });*/
+
+console.log( fs.readFileSync( `${__dirname}/mysql/cleardb-ca.pem` ) );
+console.log( fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-key.pem` ) );
+console.log( fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-cert.pem` ) );
 
 var mysqlPool = mysql.createPool({
 	connectionLimit: 100,
 	host: mysqlHostName,
 	user: mysqlUserName,
 	password: mysqlUserPassword,
-	database: mysqlDatabase
+	database: mysqlDatabase,
+	ssl: {
+		ca: fs.readFileSync( `${__dirname}/mysql/cleardb-ca.pem` ),
+		key: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-key.pem` ),
+		cart: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-cert.pem` )
+	}
+});
+
+// Test Connection
+mysqlPool.getConnection( ( error, connection ) => {
+	if ( error ) throw error;
 });
 
 // Configuration
