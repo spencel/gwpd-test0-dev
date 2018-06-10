@@ -47,26 +47,29 @@ mysqlConnection.connect( error => {
 	mysqlConnection.end();
 });*/
 
-console.log( fs.readFileSync( `${__dirname}/mysql/cleardb-ca.pem` ) );
-console.log( fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-key.pem` ) );
-console.log( fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-cert.pem` ) );
+/*console.log( fs.readFileSync( `${__dirname}/mysql/cleardb/cleardb-ca.pem` ) );
+console.log( fs.readFileSync( `${__dirname}/mysql/cleardb/bf625d1cf3ab45-key.pem` ) );
+console.log( fs.readFileSync( `${__dirname}/mysql/cleardb/bf625d1cf3ab45-cert.pem` ) );*/
 
 var mysqlPool = mysql.createPool({
 	connectionLimit: 100,
 	host: mysqlHostName,
 	user: mysqlUserName,
 	password: mysqlUserPassword,
-	database: mysqlDatabase,
-	ssl: {
-		ca: fs.readFileSync( `${__dirname}/mysql/cleardb-ca.pem` ),
-		key: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-key.pem` ),
-		cart: fs.readFileSync( `${__dirname}/mysql/bf625d1cf3ab45-cert.pem` )
-	}
+	database: mysqlDatabase/*,
+	ssl: { // why am I given these ssl keys if I don't need them to connect?
+		ca: fs.readFileSync( `${__dirname}/mysql/cleardb/cleardb-ca.pem` ),
+		key: fs.readFileSync( `${__dirname}/mysql/cleardb/bf625d1cf3ab45-key.pem` ),
+		cart: fs.readFileSync( `${__dirname}/mysql/cleardb/bf625d1cf3ab45-cert.pem` )
+	}*/
 });
 
 // Test Connection
+console.log( 'testing mysql connection' );
 mysqlPool.getConnection( ( error, connection ) => {
 	if ( error ) throw error;
+	console.log( 'mysql test connection successful' );
+	connection.release();
 });
 
 // Configuration
@@ -102,51 +105,88 @@ app.post( '/get-organism-table', ( request, response ) => {
 	});
 });
 
-app.post( '/add-organism', bodyParser.json(), async ( request, response ) => {
-	//response.sendFile( __dirname + '/index.html' ); 
-	//console.log( 'request.body:' );
-	//console.log( request.body );
-	var set = request.body;
-	let promise = new Promise( ( resolved, reject ) => {
-		
+async function addOrganism( record ) {
+	record.typeName = await getIdByValue( 'organism_type', record.typeName );
+	record.familyName = await getIdByValue( 'organism_family', record.familyName );
+	record.subfamilyName = await getIdByValue( 'organism_subfamily', record.subfamilyName );
+	record.genusName = await getIdByValue( 'organism_genus', record.genusName );
+	record.gramStainGroupName = await getIdByValue( 'gram_stain_group', record.gramStainGroupName );
+	record.genomeTypeName = await getIdByValue( 'genome_type', record.genomeTypeName );
+	var columns = [
+		'species_name',
+		'common_name',
+		'type_id',
+		'family_id',
+		'subfamily_id',
+		'genus_id',
+		'genome_type_id',
+		'gram_stain_group_id',
+		'genome_length_bp'
+	];
+	var values = await [
+		record.speciesName,
+		record.commonName,
+		record.typeName,
+		record.familyName,
+		record.subfamilyName,
+		record.genusName,
+		record.genomeTypeName,
+		record.gramStainGroupName,
+		Number( record.genomeLength )
+	];
+	console.log( values );
+	return new Promise( ( resolve, reject ) => {
+		mysqlPool.getConnection( ( error, connection ) => {
+			connection.query(
+				'INSERT INTO organism ( ?? ) VALUES ( ? )',
+				[ columns, values ],
+				( error, result ) => {
+					if ( error ) {
+						console.error( error.code );
+						console.error( error.sqlMessage );
+						console.error( error.sql );
+						resolve({ recordAdded: false });
+					}
+					console.log( result );
+					connection.release();
+					resolve({ 
+						recordAdded: true,
+						id: result.insertId
+					});
+				}
+			);
+		});
 	});
-	console.log( 'a ' + set.typeName );
-	set = await getIds( set );
-	console.log( 'b ' + set.typeName );
-	response.send('cool story bro');
-});
+}
 
-async function getIds( set ) {
-	console.log( 'set:' );
-	console.log( set );
-	let promise = new Promise( async ( resolve, reject ) => {
-		set.typeName = await getIdByValue( 'organism_type', set.typeName );
-		resolve( set );
-	});
-	set = await promise;
-	//console.log( `set.typeName: ${set.typeName}` );
-	return await set;
-}	
+app.post( '/add-organism', bodyParser.json(), async ( request, response ) => {
+	console.log( request.body );
+	var record = request.body;
+	var result = await addOrganism( record );
+	response.send( result );
+});
 
 async function getIdByValue( table, value ) {
 	console.log( 'called getOrganismTypeId' );
-	return await mysqlPool.getConnection( ( error, connection ) => {
-		if ( error ) throw error;
-		console.log( 'database connected' );
-		connection.query( 
-			'SELECT id FROM ?? WHERE name = ?',
-			[ table, value ],
-			( error, result ) => {
-				if ( error ) throw error;
-				connection.release();
-				//console.log( result.length );
-				if ( result.length === 0 ) { 
-					return;
+	return new Promise( ( resolve, reject ) => {
+		mysqlPool.getConnection( ( error, connection ) => {
+			if ( error ) throw error;
+			console.log( 'database connected' );
+			connection.query( 
+				'SELECT id FROM ?? WHERE name = ?',
+				[ table, value ],
+				( error, result ) => {
+					if ( error ) throw error;
+					connection.release();
+					//console.log( result.length );
+					if ( result.length === 0 ) { 
+						resolve();
+					}
+					console.log( `id: ${result[ 0 ].id}` );
+					resolve( result[ 0 ].id );
 				}
-				console.log( `id: ${result[ 0 ].id}` );
-				return result[ 0 ].id;
-			}
-		);
+			);
+		});
 	});
 }
 
@@ -156,89 +196,58 @@ var storage = multer.diskStorage({
     callback( null, './uploads' );
   },
   filename: ( request, file, callback ) => {
-    callback( null, file.fieldname + '-' + Date.now() );
+    callback( null, file.fieldname + '-' + Date.now() + '.data' );
   }
 });
 
 var upload = multer({ storage : storage }).single( 'organismsFile' );
 
 // upload organisms file to add to database
-app.post('/add-organisms', ( request , response ) => {
+/*app.post('/add-organisms', async ( request , response ) => {
 	// save file
-	new Promise( ( resolve, reject ) => {
-		upload(
-			request,
-			response,
+	var file = await new Promise( ( resolve, reject ) => {
+		upload( request, response, 
 			( error ) => {
 				if ( error ) {
-					return response.send( 'Error uploading file.' );
+					response.send( 'Error uploading file.' );
 				}
-				////console.log( 'File uploaded' );
-				////console.log( 'request.file:' );
-				////console.log( request.file );
+				console.log( request.file );
+				response.send( { wasFileUploaded: true } );
 				resolve( request.file );
 			}
 		);
-	})// read file
-	.then( file => {
-		response.send( { wasFileUploaded: true } );
-		var path =__dirname + '/uploads/' + file.filename;
-		//console.log( `file name path: ${ __dirname + file.filename}`);
-		var options = { skipEmptyLines: true };
+	})
+
+	var path = await __dirname + '/uploads/' + file.filename;
+	var options = { skipEmptyLines: true };
+
+	await readLines( path );
+
+	function readLines( path ) {
 		var lineReader = new LineByLineReader( path, options );
 		var iLine = 0;
 
-		// error handler
 		lineReader.on( 'error', ( error ) => {
+			console.log( 'line reader error:' );
 			console.error( error );
 		});
 
-		// read line handler
 		lineReader.on( 'line', ( line ) => {
-			lineReader.pause();
-			//console.log( line );
-
-			// skip first line because it is column names
-			//console.log( `iLine: ${iLine}`);
 			iLine++;
-			if ( iLine === 1 ) { // even though column names are on line 0, iterated already
-				lineReader.resume();
-			} else {
-				new Promise(( resolve, reject ) => {
-					mysqlPool.getConnection( ( error, connection ) => {
-						if ( error ) { console.error( error ); reject( 'error' ); }
-						//console.log( 'connected!' );
-						resolve( connection );
-					});
-				})
-				.then( connection => {
-					var line = line.split( '\t' );
-					var values = new Array( 9 );
-					var query = 
-						"INSERT INTO organism " +
-						"( " +
-						"VALUES ?";
-					connection.query(
-						query, 
-						values, 
-						( error, result ) => {
-							if ( error ) { console.error( error ); }
-							connection.release();
-							//console.log( result );
-							lineReader.resume();
-					});
-				});
-			}
+			// skip first line because it's column headers
+			if ( iLine === 1 ) return;
+			var values = line.split( '\t' );
+			//console.log( values );
+			var record = {};
 		});
 
-
-		// end file handler
-		lineReader.on( 'end', ( line ) => {
-			//console.log( 'end file' );
+		lineReader.on( 'end', () => {
+			console.log( 'line reader end' );
 		});
 
-	});
-});
+	}
+
+});*/
 // End filer uploader
 
 app.post( '/delete-organism', jsonParser, ( request, response ) => {

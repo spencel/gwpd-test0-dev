@@ -2,6 +2,7 @@
 /uploads
 *.pem
 *.crt
+*.data
 
 # Logs
 logs

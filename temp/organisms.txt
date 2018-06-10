@@ -1,8 +1,8 @@
-common_name	species_or_strain	type
-Bacteroides fragilis phage	B. fragilis phage	virus
+species_or_strain	common_name	type
+B. fragilis phage	Bacteroides fragilis phage	virus
 
 
-Bacteroides phage B40-8	B40-8	virus
+B40-8	Bacteroides phage B40-8	virus
 
 
 
