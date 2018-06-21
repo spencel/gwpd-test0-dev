@@ -224,7 +224,6 @@ jQuery( document ).ready( function () {
 				console.log( `response text: ${response.responseText}` );
 				console.log( JSON.parse( response.responseText ));
 				var data = JSON.parse( response.responseText );
-				console.log()
 				if ( data.recordAdded === true ) {
 
 					// reset values
@@ -239,19 +238,17 @@ jQuery( document ).ready( function () {
 					jQuery( '#genomeLength', newRecordTr ).val('');
 
 					// append new record
-					console.log( 'set:' );
-					console.log( data.record );
 					jQuery( 'table#organism' ).append(
 						"<tr id='" + data.id + "'>\
-							<td id='edit-speciesName'>" + data.record[ 0 ].species_name + "</td>\
-							<td id='edit-commonName'>" + data.record[ 0 ].common_name + "</td>\
-							<td id='edit-typeName'>" + data.record[ 0 ].type_name + "</td>\
-							<td id='edit-familyName'>" + data.record[ 0 ].family_name + "</td>\
-							<td id='edit-subfamilyName'>" + data.record[ 0 ].subfamily_name + "</td>\
-							<td id='edit-genusName'>" + data.record[ 0 ].genus_name + "</td>\
-							<td id='edit-genomeTypeName'>" + data.record[ 0 ].genome_type_name + "</td>\
-							<td id='edit-gramStainGroupName'>" + data.record[ 0 ].gram_stain_group_name + "</td>\
-							<td id='edit-genomeLength'>" + data.record[ 0 ].genome_length_bp + "</td>\
+							<td id='edit-speciesName'>" + payload.speciesName + "</td>\
+							<td id='edit-commonName'>" + payload.commonName + "</td>\
+							<td id='edit-typeName'>" + payload.typeName + "</td>\
+							<td id='edit-familyName'>" + payload.familyName + "</td>\
+							<td id='edit-subfamilyName'>" + payload.subfamilyName + "</td>\
+							<td id='edit-genusName'>" + payload.genusName + "</td>\
+							<td id='edit-genomeTypeName'>" + payload.genomeTypeName + "</td>\
+							<td id='edit-gramStainGroupName'>" + payload.gramStainGroupName + "</td>\
+							<td id='edit-genomeLength'>" + payload.genomeLength + "</td>\
 							<td>\
 								<input id='delete-record'class='delete' type='submit' value='X'>\
 							</td>\

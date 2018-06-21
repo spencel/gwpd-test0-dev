@@ -1,0 +1,36 @@
+id,name
+162,"B. fragilis phage"
+172,B40-8
+12,"C. perfringens"
+182,"Coxsackievirus B5"
+22,"E. coli"
+32,Enterococcus
+42,"Enterococcus faecalis"
+192,Enterovirus
+202,"Enterovirus AR51101"
+232,"F-specific phages"
+52,"Fecal coliform"
+62,"Fecal streptococcus"
+212,"Feline calicivirus"
+222,"FRNA phage"
+132,Haematobium
+152,"Human immunodeficiency virus 1"
+142,Lamblia
+242,"Male-specific coliphage"
+252,MS2
+262,MY2
+272,phiX174
+282,Poliovirus
+292,"Poliovirus 1"
+72,"Pseudomonas aeruginosa"
+302,Rotavirus
+82,Salmonella
+312,SC12
+322,"Somatic coliphages"
+122,"Spores of aerobic bacteria"
+332,SR51
+342,SS13
+92,Streptococcus
+102,"Thermotolerant coliform"
+112,"Total coliform"
+2,"Vibrio cholerae"
