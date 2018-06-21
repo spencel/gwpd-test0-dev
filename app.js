@@ -211,7 +211,7 @@ app.post( '/add-organism', bodyParser.json(), ( request, response ) => {
 							console.log('reject');
 							response.send( {recordAdded: false } );
 							reject();
-							return
+							return;
 						}
 						set.genome_type_id = result[ 0 ].id;
 						console.log( `set.genome_type_id: ${set.genome_type_id}`);
