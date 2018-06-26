@@ -25,6 +25,7 @@ var mysqlHostName = 'us-cdbr-iron-east-04.cleardb.net';
 var mysqlUserName = 'bf625d1cf3ab45';
 var mysqlUserPassword = '6d68558b';
 var mysqlDatabase = 'heroku_b2cf77a96af7a57';
+var mysqlDatabasePort = '3306';
 
 /*var mysqlConnection = mysql.createConnection({
 	host: mysqlHostName,
